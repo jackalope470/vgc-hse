@@ -2,7 +2,8 @@
   "name": "VantageGeo HSE",
   "short_name": "VGC HSE",
   "description": "VantageGeo HSE Safety Meeting Sign-In and Badge Generator",
-  "start_url": "/index.html",
+  "start_url": "/vgc-hse/index.html",
+  "scope": "/vgc-hse/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#D6E4F0",
@@ -21,6 +22,5 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["productivity", "utilities"],
-  "screenshots": []
+  "categories": ["productivity", "utilities"]
 }
