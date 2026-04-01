@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="theme-color" content="#1A5DB5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="VGC HSE">
+<link rel="manifest" href="manifest.json">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>VantageGeo | QR Badge Generator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Open+Sans:wght@300;400;500;600&display=swap');
+  :root {
+    --bg:#D6E4F0;--white:#FFFFFF;--panel:#FFFFFF;--border:#B8CDE0;
+    --text:#0D1B2A;--muted:#5A7A96;
+    --vg-red:#D42B2B;--vg-green:#2E9E3A;--vg-blue:#1A5DB5;
+    --accent-dark:#134A94;
+    --shadow:0 2px 12px rgba(13,27,42,0.10);--shadow-lg:0 4px 24px rgba(13,27,42,0.14);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Open Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  .header{background:var(--white);border-bottom:3px solid var(--vg-blue);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow);}
+  .vg-logo{display:flex;align-items:center;gap:8px;}
+  .vg-wordmark{font-family:'Montserrat',sans-serif;font-size:20px;font-weight:800;color:var(--text);letter-spacing:-0.5px;}
+  .header-badge{background:var(--vg-blue);color:white;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;padding:5px 12px;border-radius:3px;text-transform:uppercase;}
+  .app-body{padding:20px;max-width:600px;margin:0 auto;}
+  .section-label{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--vg-blue);margin-bottom:8px;margin-top:4px;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:14px;box-shadow:var(--shadow);}
+  .card-title{font-family:'Montserrat',sans-serif;font-size:15px;font-weight:700;letter-spacing:0.5px;margin-bottom:16px;color:var(--text);text-transform:uppercase;}
+  label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+  input,select{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:6px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:16px;padding:11px 14px;margin-bottom:14px;outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;}
+  input:focus,select:focus{border-color:var(--vg-blue);box-shadow:0 0 0 3px rgba(26,93,181,.12);background:white;}
+  select option{background:white;}
+  .btn{display:block;width:100%;padding:14px;border:none;border-radius:6px;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all .15s;margin-bottom:10px;}
+  .btn-primary{background:var(--vg-blue);color:white;box-shadow:0 2px 8px rgba(26,93,181,.25);}
+  .btn-primary:active{background:var(--accent-dark);transform:scale(.98);}
+  .btn-secondary{background:transparent;color:var(--text);border:1.5px solid var(--border);}
+  .person-row{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:7px;margin-bottom:8px;}
+  .person-info{flex:1;}
+  .person-name{font-weight:600;font-size:14px;color:var(--text);}
+  .person-meta{font-size:11px;color:var(--muted);margin-top:2px;}
+  .person-id{font-family:'Montserrat',sans-serif;font-size:11px;color:var(--vg-blue);margin-right:10px;white-space:nowrap;font-weight:600;}
+  .remove-btn{background:none;border:none;color:var(--muted);font-size:17px;cursor:pointer;padding:4px 6px;line-height:1;border-radius:4px;}
+  .remove-btn:hover{color:var(--vg-red);}
+  .count-badge{background:var(--vg-blue);color:white;font-size:10px;font-weight:700;border-radius:10px;padding:1px 7px;margin-left:6px;font-family:'Montserrat',sans-serif;vertical-align:middle;}
+  .empty-state{text-align:center;padding:32px 20px;color:var(--muted);font-size:14px;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);background:var(--text);color:white;border-left:4px solid var(--vg-green);padding:11px 20px;border-radius:6px;font-size:13px;font-weight:600;z-index:999;transition:all .3s ease;opacity:0;white-space:nowrap;box-shadow:var(--shadow-lg);}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+  .toast.error{border-left-color:var(--vg-red);}
+
+  /* ── PRINT ── */
+  @media print {
+    body{background:white;margin:0;padding:0;}
+    .no-print{display:none !important;}
+    .print-grid{display:grid !important;grid-template-columns:repeat(3,85.6mm);gap:5mm;padding:8mm;background:white;}
+    .badge{
+      width:85.6mm;height:54mm;
+      border:1.5px solid #ccc;border-radius:5px;
+      padding:3.5mm;
+      display:flex;flex-direction:column;align-items:center;justify-content:space-between;
+      page-break-inside:avoid;background:white;
+    }
+    .badge-header{width:100%;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #1A5DB5;padding-bottom:2mm;margin-bottom:1.5mm;}
+    .badge-logo-wrap{display:flex;align-items:center;gap:2mm;}
+    .badge-logo-text{font-family:'Montserrat',sans-serif;font-size:11px;font-weight:800;color:#0D1B2A;letter-spacing:-0.3px;}
+    .badge-hse-label{font-family:'Montserrat',sans-serif;font-size:8px;font-weight:700;letter-spacing:1px;color:#1A5DB5;text-transform:uppercase;}
+    .badge-qr{flex:1;display:flex;align-items:center;justify-content:center;}
+    .badge-qr canvas,.badge-qr img{width:26mm !important;height:26mm !important;}
+    .badge-name{font-family:'Montserrat',sans-serif;font-size:11px;font-weight:800;text-align:center;text-transform:uppercase;letter-spacing:0.3px;color:#0D1B2A;line-height:1.15;}
+    .badge-company{font-family:'Open Sans',sans-serif;font-size:7.5px;color:#5A7A96;text-align:center;margin-top:0.8mm;}
+    .badge-footer{width:100%;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #ddd;padding-top:1.5mm;margin-top:1.5mm;}
+    .badge-id{font-family:'Montserrat',sans-serif;font-size:7.5px;color:#999;letter-spacing:0.3px;}
+    .badge-type{font-family:'Montserrat',sans-serif;font-size:7.5px;font-weight:700;color:#1A5DB5;text-transform:uppercase;letter-spacing:0.3px;}
+  }
+  @media screen{.print-grid{display:none;}}
+</style>
+</head>
+<body>
+
+<div class="header no-print">
+  <div class="vg-logo">
+    
+    <div class="vg-wordmark">VantageGeo</div>
+  </div>
+  <div class="header-badge">Badge Generator</div>
+</div>
+
+<div class="app-body no-print">
+  <br>
+  <div class="section-label">Add Person</div>
+  <div class="card">
+    <div class="card-title">Person Details</div>
+    <label>Full Name</label>
+    <input type="text" id="p-name" placeholder="First Last" autocomplete="off">
+    <label>Company</label>
+    <input type="text" id="p-company" placeholder="e.g. VantageGeo, Skyway Field Services">
+    <label>Person Type</label>
+    <select id="p-type"><option value="Employee">Employee</option><option value="Subcontractor">Subcontractor</option></select>
+    <button class="btn btn-primary" onclick="addPerson()">+ Add to Roster</button>
+  </div>
+
+  <div class="section-label">Roster <span class="count-badge" id="roster-count">0</span></div>
+  <div class="card">
+    <div id="roster-list"><div class="empty-state">No people added yet — fill in the form above</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Generate &amp; Print</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">
+      Wallet card size (85.6 × 54mm) — 3 per row. Print on cardstock and cut.<br>
+      QR encodes: <span style="color:var(--vg-blue);font-family:monospace;font-size:12px;">Name|Company|Type|TempID</span>
+    </p>
+    <button class="btn btn-primary" onclick="generateAndPrint()">🖨 Generate &amp; Print Badges</button>
+    <button class="btn btn-secondary" onclick="clearRoster()">Clear Roster</button>
+  </div>
+</div>
+
+<!-- PRINT AREA -->
+<div class="print-grid" id="print-grid"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+let roster=[];
+let tempCounter=1;
+
+function pad(n){return String(n).padStart(3,'0');}
+
+function addPerson(){
+  const name=document.getElementById('p-name').value.trim();
+  const company=document.getElementById('p-company').value.trim();
+  const type=document.getElementById('p-type').value;
+  if(!name){showToast('Name is required',true);return;}
+  if(!company){showToast('Company is required',true);return;}
+  if(roster.find(p=>p.name.toLowerCase()===name.toLowerCase())){showToast(name+' already in roster',true);return;}
+  const prefix=type==='Employee'?'VGC':'SUB';
+  roster.push({name,company,type,tempID:prefix+'-TEMP-'+pad(tempCounter++)});
+  document.getElementById('p-name').value='';
+  document.getElementById('p-company').value='';
+  renderRoster();showToast('✓ '+name+' added');
+}
+
+function removePerson(idx){
+  const name=roster[idx].name;roster.splice(idx,1);renderRoster();showToast(name+' removed');
+}
+
+function renderRoster(){
+  document.getElementById('roster-count').textContent=roster.length;
+  const list=document.getElementById('roster-list');
+  if(!roster.length){list.innerHTML='<div class="empty-state">No people added yet</div>';return;}
+  list.innerHTML=roster.map((p,i)=>`
+    <div class="person-row">
+      <div class="person-info">
+        <div class="person-name">${p.name}</div>
+        <div class="person-meta">${p.company} · ${p.type}</div>
+      </div>
+      <span class="person-id">${p.tempID}</span>
+      <button class="remove-btn" onclick="removePerson(${i})">✕</button>
+    </div>`).join('');
+}
+
+function clearRoster(){
+  if(!roster.length)return;
+  if(!confirm('Clear all people from the roster?'))return;
+  roster=[];tempCounter=1;renderRoster();showToast('Roster cleared');
+}
+
+function generateAndPrint(){
+  if(!roster.length){showToast('Add at least one person first',true);return;}
+  const grid=document.getElementById('print-grid');
+  grid.innerHTML='';
+  let loaded=0;
+  roster.forEach((person,idx)=>{
+    const qrData=`${person.name}|${person.company}|${person.type}|${person.tempID}`;
+    const badge=document.createElement('div');
+    badge.className='badge';
+    badge.innerHTML=`
+      <div class="badge-header">
+        <div class="badge-logo-wrap">
+          
+          <div class="badge-logo-text">VantageGeo</div>
+        </div>
+        <div class="badge-hse-label">HSE ID</div>
+      </div>
+      <div class="badge-qr" id="qr-${idx}"></div>
+      <div class="badge-name">${person.name}</div>
+      <div class="badge-company">${person.company}</div>
+      <div class="badge-footer">
+        <div class="badge-id">${person.tempID}</div>
+        <div class="badge-type">${person.type}</div>
+      </div>`;
+    grid.appendChild(badge);
+    new QRCode(document.getElementById('qr-'+idx),{
+      text:qrData,width:98,height:98,
+      colorDark:'#000000',colorLight:'#ffffff',
+      correctLevel:QRCode.CorrectLevel.M
+    });
+    if(++loaded===roster.length)setTimeout(()=>window.print(),450);
+  });
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&document.activeElement.tagName==='INPUT')addPerson();
+});
+
+function showToast(msg,isError=false){
+  const t=document.getElementById('toast');t.textContent=msg;
+  t.className='toast'+(isError?' error':'')+' show';
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+</script>
+<script>
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/service-worker.js').catch(()=>{});}
+</script>
+</body>
+</html>

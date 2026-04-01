@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#1A5DB5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="VGC HSE">
+<link rel="manifest" href="manifest.json">
+<title>VantageGeo HSE</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Open+Sans:wght@400;500;600&display=swap');
+  :root {
+    --bg:#D6E4F0;--white:#FFFFFF;--border:#B8CDE0;
+    --text:#0D1B2A;--muted:#5A7A96;
+    --vg-blue:#1A5DB5;--vg-red:#D42B2B;--vg-green:#2E9E3A;
+    --shadow:0 2px 12px rgba(13,27,42,0.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Open Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+  .header{background:var(--white);border-bottom:3px solid var(--vg-blue);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow);}
+  .wordmark{font-family:'Montserrat',sans-serif;font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.5px;}
+  .header-sub{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;}
+  .body{padding:24px;max-width:520px;margin:0 auto;width:100%;flex:1;}
+  .welcome{background:var(--vg-blue);color:white;border-radius:12px;padding:24px;margin-bottom:24px;box-shadow:var(--shadow);}
+  .welcome-title{font-family:'Montserrat',sans-serif;font-size:22px;font-weight:800;margin-bottom:6px;}
+  .welcome-sub{font-size:13px;opacity:0.85;line-height:1.5;}
+  .section-label{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--vg-blue);margin-bottom:10px;}
+  .app-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:20px;margin-bottom:14px;box-shadow:var(--shadow);text-decoration:none;display:block;color:var(--text);transition:border-color .2s,box-shadow .2s;}
+  .app-card:active{border-color:var(--vg-blue);box-shadow:0 4px 20px rgba(26,93,181,.15);}
+  .app-card-icon{font-size:32px;margin-bottom:10px;}
+  .app-card-title{font-family:'Montserrat',sans-serif;font-size:17px;font-weight:800;margin-bottom:4px;}
+  .app-card-desc{font-size:13px;color:var(--muted);line-height:1.5;}
+  .app-card-arrow{float:right;color:var(--vg-blue);font-size:20px;margin-top:-28px;}
+  .install-banner{background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow);display:none;}
+  .install-banner.show{display:block;}
+  .install-title{font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;margin-bottom:6px;color:var(--vg-blue);}
+  .install-desc{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;}
+  .btn-install{display:block;width:100%;padding:13px;border:none;border-radius:6px;background:var(--vg-blue);color:white;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;}
+  .ios-hint{font-size:11px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.5;}
+  .footer{text-align:center;padding:20px;font-size:11px;color:var(--muted);}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="wordmark">VantageGeo</div>
+    <div class="header-sub">HSE Field Tools</div>
+  </div>
+</div>
+
+<div class="body">
+
+  <div class="welcome">
+    <div class="welcome-title">HSE Field Tools</div>
+    <div class="welcome-sub">Safety meeting sign-in and QR badge generator for field operations.</div>
+  </div>
+
+  <!-- Install banner - shown when installable -->
+  <div class="install-banner" id="install-banner">
+    <div class="install-title">📲 Install as App</div>
+    <div class="install-desc">Install VantageGeo HSE to your home screen for offline use and camera access.</div>
+    <button class="btn-install" id="install-btn">Install App</button>
+    <div class="ios-hint" id="ios-hint" style="display:none;">
+      On iPhone/iPad: tap the <b>Share</b> button in Safari, then <b>Add to Home Screen</b>
+    </div>
+  </div>
+
+  <div class="section-label">Tools</div>
+
+  <a class="app-card" href="safety_meeting_signin.html">
+    <div class="app-card-icon">📋</div>
+    <div class="app-card-title">Safety Meeting Sign-In</div>
+    <div class="app-card-desc">Create a meeting, scan QR badges or enter manually, export CSVs directly to SharePoint.</div>
+    <div class="app-card-arrow">›</div>
+  </a>
+
+  <a class="app-card" href="qr_badge_generator.html">
+    <div class="app-card-icon">🪪</div>
+    <div class="app-card-title">QR Badge Generator</div>
+    <div class="app-card-desc">Add crew members, generate wallet-size QR ID badges and print on cardstock.</div>
+    <div class="app-card-arrow">›</div>
+  </a>
+
+</div>
+
+<div class="footer">VantageGeo HSE Tools &nbsp;·&nbsp; Stopgap v1.0</div>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+}
+
+let deferredPrompt = null;
+const banner = document.getElementById('install-banner');
+const btn = document.getElementById('install-btn');
+const iosHint = document.getElementById('ios-hint');
+
+// Android/Chrome install prompt
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  banner.classList.add('show');
+  iosHint.style.display = 'none';
+});
+
+btn.addEventListener('click', async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    if (outcome === 'accepted') banner.classList.remove('show');
+  }
+});
+
+// iOS Safari hint
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isInStandalone = window.matchMedia('(display-mode: standalone)').matches;
+if (isIOS && !isInStandalone) {
+  banner.classList.add('show');
+  btn.style.display = 'none';
+  iosHint.style.display = 'block';
+}
+
+// Hide if already installed
+if (isInStandalone) banner.classList.remove('show');
+</script>
+</body>
+</html>

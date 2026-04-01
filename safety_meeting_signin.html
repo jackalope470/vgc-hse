@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="theme-color" content="#1A5DB5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="VGC HSE">
+<link rel="manifest" href="manifest.json">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>VantageGeo | Safety Meeting Sign-In</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Open+Sans:wght@300;400;500;600&display=swap');
+  :root {
+    --bg:#D6E4F0;--white:#FFFFFF;--panel:#FFFFFF;--border:#B8CDE0;
+    --text:#0D1B2A;--muted:#5A7A96;
+    --vg-red:#D42B2B;--vg-green:#2E9E3A;--vg-blue:#1A5DB5;
+    --accent-dark:#134A94;--warning:#E07B00;
+    --shadow:0 2px 12px rgba(13,27,42,0.10);--shadow-lg:0 4px 24px rgba(13,27,42,0.14);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Open Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+  .header{background:var(--white);border-bottom:3px solid var(--vg-blue);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--shadow);}
+  .vg-logo{display:flex;align-items:center;gap:8px;}
+  .vg-wordmark{font-family:'Montserrat',sans-serif;font-size:20px;font-weight:800;color:var(--text);letter-spacing:-0.5px;}
+  .header-badge{background:var(--vg-blue);color:white;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;padding:5px 12px;border-radius:3px;text-transform:uppercase;}
+  .screen{display:none;padding:16px;max-width:600px;margin:0 auto;}
+  .screen.active{display:block;}
+  .section-label{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--vg-blue);margin-bottom:8px;margin-top:4px;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:14px;box-shadow:var(--shadow);}
+  .card-title{font-family:'Montserrat',sans-serif;font-size:15px;font-weight:700;letter-spacing:0.5px;margin-bottom:16px;color:var(--text);text-transform:uppercase;}
+  label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+  input,select,textarea{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:6px;color:var(--text);font-family:'Open Sans',sans-serif;font-size:16px;padding:11px 14px;margin-bottom:14px;outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;}
+  input:focus,select:focus,textarea:focus{border-color:var(--vg-blue);box-shadow:0 0 0 3px rgba(26,93,181,.12);background:white;}
+  select option{background:white;}
+  textarea{resize:vertical;min-height:80px;}
+  .btn{display:block;width:100%;padding:14px;border:none;border-radius:6px;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all .15s;margin-bottom:10px;}
+  .btn-primary{background:var(--vg-blue);color:white;box-shadow:0 2px 8px rgba(26,93,181,.25);}
+  .btn-primary:active{background:var(--accent-dark);transform:scale(.98);}
+  .btn-secondary{background:transparent;color:var(--text);border:1.5px solid var(--border);}
+  .btn-sm{width:auto;display:inline-block;padding:7px 14px;font-size:11px;margin-bottom:0;}
+  .scanner-wrap{position:relative;width:100%;max-width:320px;margin:0 auto 14px;border-radius:10px;overflow:hidden;border:3px solid var(--vg-blue);box-shadow:var(--shadow-lg);}
+  #qr-video{width:100%;display:block;}
+  .scanner-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+  .scan-frame{width:180px;height:180px;border:2.5px solid var(--vg-blue);border-radius:6px;box-shadow:0 0 0 9999px rgba(214,228,240,.45);}
+  .scan-line{position:absolute;left:calc(50% - 90px);width:180px;height:2px;background:var(--vg-red);animation:scanline 2s linear infinite;opacity:.85;}
+  @keyframes scanline{0%{top:calc(50% - 90px);}100%{top:calc(50% + 90px);}}
+  #scan-status{text-align:center;font-size:12px;color:var(--muted);margin-bottom:12px;min-height:18px;font-weight:500;}
+  .attendee-row{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:7px;margin-bottom:8px;}
+  .attendee-info{flex:1;}
+  .attendee-name{font-weight:600;font-size:14px;color:var(--text);}
+  .attendee-meta{font-size:11px;color:var(--muted);margin-top:2px;}
+  .attendee-time{font-family:'Montserrat',sans-serif;font-size:11px;color:var(--vg-green);text-align:right;margin-right:10px;font-weight:600;}
+  .attendee-time.clocked-out{color:var(--warning);}
+  .remove-btn{background:none;border:none;color:var(--muted);font-size:17px;cursor:pointer;padding:4px 6px;line-height:1;border-radius:4px;}
+  .remove-btn:hover{color:var(--vg-red);}
+  .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:'Montserrat',sans-serif;}
+  .pill-open{background:rgba(46,158,58,.12);color:var(--vg-green);border:1.5px solid var(--vg-green);}
+  .pill-closed{background:rgba(212,43,43,.10);color:var(--vg-red);border:1.5px solid var(--vg-red);}
+  .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+  .summary-value{font-size:14px;font-weight:600;color:var(--text);}
+  .meeting-bar{background:var(--vg-blue);color:white;border-radius:8px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow);}
+  .meeting-bar-title{font-family:'Montserrat',sans-serif;font-size:15px;font-weight:700;}
+  .meeting-bar-meta{font-size:11px;opacity:.8;margin-top:2px;}
+  .manual-form{background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:16px;margin-top:12px;}
+  .export-card{background:var(--panel);border:1.5px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
+  .export-num{display:inline-block;background:var(--vg-blue);color:white;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;border-radius:50%;width:22px;height:22px;line-height:22px;text-align:center;margin-right:8px;}
+  .export-title{font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;}
+  .export-desc{font-size:12px;color:var(--muted);margin-bottom:12px;padding-left:30px;}
+  .count-badge{background:var(--vg-blue);color:white;font-size:10px;font-weight:700;border-radius:10px;padding:1px 7px;margin-left:6px;font-family:'Montserrat',sans-serif;}
+  .empty-state{text-align:center;padding:32px 20px;color:var(--muted);}
+  .empty-icon{font-size:36px;margin-bottom:10px;}
+  .empty-text{font-size:13px;}
+  .divider{border:none;border-top:1.5px solid var(--border);margin:16px 0;}
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:2px solid var(--border);display:flex;z-index:100;box-shadow:0 -2px 12px rgba(13,27,42,.08);}
+  .nav-btn{flex:1;padding:10px 8px;background:none;border:none;color:var(--muted);font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:color .15s;border-top:3px solid transparent;}
+  .nav-btn.active{color:var(--vg-blue);border-top-color:var(--vg-blue);}
+  .nav-icon{font-size:19px;line-height:1;}
+  .pb-nav{padding-bottom:70px;}
+  .toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(40px);background:var(--text);color:white;border-left:4px solid var(--vg-green);padding:11px 20px;border-radius:6px;font-size:13px;font-weight:600;z-index:999;transition:all .3s ease;opacity:0;white-space:nowrap;max-width:90vw;box-shadow:var(--shadow-lg);}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+  .toast.error{border-left-color:var(--vg-red);}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="vg-logo">
+    
+    <div class="vg-wordmark">VantageGeo</div>
+  </div>
+  <div class="header-badge">HSE Sign-In</div>
+</div>
+
+<!-- SETUP -->
+<div class="screen active pb-nav" id="screen-setup">
+  <br>
+  <div class="section-label">Step 1 of 3 — Meeting Setup</div>
+  <div class="card">
+    <div class="card-title">📋 Meeting Details</div>
+    <label>Date &amp; Time</label><input type="datetime-local" id="meeting-datetime">
+    <label>Client</label><input type="text" id="meeting-client" placeholder="e.g. Mull Drilling">
+    <label>Project Name</label><input type="text" id="meeting-project" placeholder="e.g. Kearny NW 3D">
+    <label>Project #</label><input type="text" id="meeting-project-num" placeholder="e.g. 2601">
+    <label>Presenter / Facilitator</label><input type="text" id="meeting-presenter" placeholder="Full name">
+    <label>City | State</label><input type="text" id="meeting-location" placeholder="e.g. Kearny County, Kansas">
+    <label>Meeting Type</label>
+    <select id="meeting-type">
+      <option value="">Select type...</option>
+      <option>Preshift</option><option>Orientation</option><option>Project Kickoff</option>
+      <option>Mobilization</option><option>Demobilization</option><option>Toolbox Talk</option>
+      <option>HSE / Operations Meeting</option>
+    </select>
+    <label>Shift</label>
+    <select id="meeting-shift"><option value="">Select shift...</option><option>Day</option><option>Night</option><option>N/A</option></select>
+    <label>Meeting Details / Topics</label>
+    <textarea id="meeting-details" placeholder="Topics discussed, key points covered..."></textarea>
+    <button class="btn btn-primary" onclick="startMeeting()">Start Meeting →</button>
+  </div>
+</div>
+
+<!-- SIGN IN -->
+<div class="screen pb-nav" id="screen-signin">
+  <br>
+  <div class="meeting-bar">
+    <div>
+      <div class="meeting-bar-title" id="sum-project">—</div>
+      <div class="meeting-bar-meta" id="sum-meta">—</div>
+    </div>
+    <span class="pill pill-open">Open</span>
+  </div>
+  <div class="section-label">Step 2 of 3 — Attendee Sign-In</div>
+  <div class="card">
+    <div class="card-title">📷 QR Scan</div>
+    <div class="scanner-wrap"><video id="qr-video" playsinline muted></video>
+      <div class="scanner-overlay"><div class="scan-frame"></div><div class="scan-line"></div></div>
+    </div>
+    <div id="scan-status">Tap Start to activate camera</div>
+    <button class="btn btn-primary" id="scan-toggle-btn" onclick="toggleScanner()">Start Camera</button>
+  </div>
+  <div class="card">
+    <div class="card-title">✏️ Manual Entry</div>
+    <div class="manual-form">
+      <label>Full Name</label><input type="text" id="manual-name" placeholder="First Last">
+      <label>Company</label><input type="text" id="manual-company" placeholder="Company name">
+      <label>Person Type</label>
+      <select id="manual-type"><option value="Employee">Employee</option><option value="Subcontractor">Subcontractor</option></select>
+      <label>Person ID (optional)</label><input type="text" id="manual-id" placeholder="VGC-#### or SUB-####">
+      <button class="btn btn-primary" onclick="manualSignIn()">Add Attendee</button>
+    </div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div class="card-title" style="margin-bottom:0;">Signed In <span class="count-badge" id="attendee-count">0</span></div>
+      <button class="btn btn-sm btn-secondary" onclick="signOutAll()">Sign Out All</button>
+    </div>
+    <div id="attendee-list">
+      <div class="empty-state"><div class="empty-icon">👷</div><div class="empty-text">No attendees yet</div></div>
+    </div>
+  </div>
+  <button class="btn btn-primary" onclick="goToExport()">Close Meeting &amp; Export →</button>
+</div>
+
+<!-- EXPORT -->
+<div class="screen pb-nav" id="screen-export">
+  <br>
+  <div class="section-label">Step 3 of 3 — Export to SharePoint</div>
+  <div class="card">
+    <div class="card-title">Meeting Summary</div>
+    <div class="summary-grid">
+      <div><label>Project</label><div class="summary-value" id="exp-project">—</div></div>
+      <div><label>Date</label><div class="summary-value" id="exp-date">—</div></div>
+      <div><label>Presenter</label><div class="summary-value" id="exp-presenter">—</div></div>
+      <div><label>Attendees</label><div class="summary-value" id="exp-count">—</div></div>
+      <div><label>Type</label><div class="summary-value" id="exp-type">—</div></div>
+      <div><label>Shift</label><div class="summary-value" id="exp-shift">—</div></div>
+    </div>
+    <span class="pill pill-closed">Closed</span>
+  </div>
+  <div class="export-card">
+    <div class="export-title"><span class="export-num">1</span>Safety_Meetings CSV</div>
+    <div class="export-desc">Import to: SharePoint → Safety Meetings list. One row — the meeting record.</div>
+    <button class="btn btn-primary" onclick="exportMeetingCSV()">⬇ Download Safety_Meetings.csv</button>
+  </div>
+  <div class="export-card">
+    <div class="export-title"><span class="export-num">2</span>Meeting_Attendance CSV</div>
+    <div class="export-desc">Import to: SharePoint → Meeting_Attendance list. One row per attendee.</div>
+    <button class="btn btn-primary" onclick="exportAttendanceCSV()">⬇ Download Meeting_Attendance.csv</button>
+  </div>
+  <hr class="divider">
+  <button class="btn btn-secondary" onclick="newMeeting()">+ Start New Meeting</button>
+</div>
+
+<div class="bottom-nav">
+  <button class="nav-btn active" id="nav-setup" onclick="navTo('setup')"><span class="nav-icon">📋</span>Setup</button>
+  <button class="nav-btn" id="nav-signin" onclick="navTo('signin')"><span class="nav-icon">✅</span>Sign-In</button>
+  <button class="nav-btn" id="nav-export" onclick="navTo('export')"><span class="nav-icon">📤</span>Export</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+let meeting={},attendees=[],meetingID='';
+let scannerActive=false,videoStream=null,scanCanvas=null,scanCtx=null,scanAnimFrame=null;
+let lastScanned='',lastScannedTime=0;
+window.onload=()=>{
+  const now=new Date();
+  document.getElementById('meeting-datetime').value=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,16);
+  scanCanvas=document.createElement('canvas');scanCtx=scanCanvas.getContext('2d');
+};
+function navTo(s){
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('screen-'+s).classList.add('active');
+  document.getElementById('nav-'+s).classList.add('active');
+}
+function startMeeting(){
+  const dt=document.getElementById('meeting-datetime').value;
+  const project=document.getElementById('meeting-project').value.trim();
+  const presenter=document.getElementById('meeting-presenter').value.trim();
+  const type=document.getElementById('meeting-type').value;
+  if(!dt||!project||!presenter||!type){showToast('Fill in Date, Project, Presenter, and Type',true);return;}
+  const d=new Date(dt);
+  meetingID='MTG-'+d.toISOString().slice(0,10).replace(/-/g,'')+'-'+String(Math.floor(Math.random()*900)+100);
+  meeting={
+    dt,client:document.getElementById('meeting-client').value.trim(),
+    project,projectNum:document.getElementById('meeting-project-num').value.trim(),
+    presenter,location:document.getElementById('meeting-location').value.trim(),
+    type,shift:document.getElementById('meeting-shift').value,
+    details:document.getElementById('meeting-details').value.trim(),meetingID
+  };
+  document.getElementById('sum-project').textContent=project+(meeting.projectNum?' #'+meeting.projectNum:'');
+  document.getElementById('sum-meta').textContent=type+' | '+(meeting.shift||'N/A')+' | '+presenter+' | '+formatDate(dt);
+  navTo('signin');showToast('Meeting started — '+meetingID);
+}
+async function toggleScanner(){scannerActive?stopScanner():await startScanner();}
+async function startScanner(){
+  try{
+    document.getElementById('scan-status').textContent='Starting camera...';
+    videoStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    const v=document.getElementById('qr-video');v.srcObject=videoStream;await v.play();
+    scannerActive=true;
+    document.getElementById('scan-toggle-btn').textContent='Stop Camera';
+    document.getElementById('scan-status').textContent='Point at a QR badge...';
+    scanFrame();
+  }catch(e){document.getElementById('scan-status').textContent='Camera unavailable — use manual entry';showToast('Camera unavailable',true);}
+}
+function stopScanner(){
+  if(videoStream)videoStream.getTracks().forEach(t=>t.stop());
+  if(scanAnimFrame)cancelAnimationFrame(scanAnimFrame);
+  videoStream=null;scanAnimFrame=null;scannerActive=false;
+  document.getElementById('scan-toggle-btn').textContent='Start Camera';
+  document.getElementById('scan-status').textContent='Camera stopped';
+  document.getElementById('qr-video').srcObject=null;
+}
+function scanFrame(){
+  const v=document.getElementById('qr-video');
+  if(!scannerActive||v.readyState!==v.HAVE_ENOUGH_DATA){scanAnimFrame=requestAnimationFrame(scanFrame);return;}
+  scanCanvas.width=v.videoWidth;scanCanvas.height=v.videoHeight;
+  scanCtx.drawImage(v,0,0);
+  const img=scanCtx.getImageData(0,0,scanCanvas.width,scanCanvas.height);
+  const code=jsQR(img.data,img.width,img.height,{inversionAttempts:'dontInvert'});
+  if(code&&code.data){
+    const now=Date.now();
+    if(code.data!==lastScanned||now-lastScannedTime>3000){lastScanned=code.data;lastScannedTime=now;handleQRScan(code.data);}
+  }
+  scanAnimFrame=requestAnimationFrame(scanFrame);
+}
+function handleQRScan(data){
+  document.getElementById('scan-status').textContent='✓ Scanned';
+  let name,company,personType,personID;
+  if(data.includes('|')){const p=data.split('|');name=p[0]||'';company=p[1]||'';personType=p[2]||'Employee';personID=p[3]||data;}
+  else{personID=data;name=data;company='';personType=data.startsWith('SUB')?'Subcontractor':'Employee';}
+  addAttendee(name,company,personType,personID,'QR Scan');
+}
+function manualSignIn(){
+  const name=document.getElementById('manual-name').value.trim();
+  const company=document.getElementById('manual-company').value.trim();
+  const type=document.getElementById('manual-type').value;
+  const id=document.getElementById('manual-id').value.trim();
+  if(!name){showToast('Name is required',true);return;}
+  addAttendee(name,company,type,id,'Manual');
+  document.getElementById('manual-name').value='';
+  document.getElementById('manual-company').value='';
+  document.getElementById('manual-id').value='';
+}
+function addAttendee(name,company,personType,personID,method){
+  const dup=attendees.find(a=>(personID&&a.personID&&a.personID===personID)||a.name.toLowerCase()===name.toLowerCase());
+  if(dup){showToast(name+' already signed in',true);return;}
+  attendees.push({id:Date.now(),name,company,personType,personID:personID||'',clockIn:new Date().toISOString(),clockOut:'',hoursWorked:'',method,meetingID});
+  renderAttendees();showToast('✓ '+name+' signed in');
+}
+function renderAttendees(){
+  const list=document.getElementById('attendee-list');
+  document.getElementById('attendee-count').textContent=attendees.length;
+  if(!attendees.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">👷</div><div class="empty-text">No attendees yet</div></div>';return;}
+  list.innerHTML=attendees.map(a=>`
+    <div class="attendee-row">
+      <div class="attendee-info">
+        <div class="attendee-name">${a.name}</div>
+        <div class="attendee-meta">${a.company||'No company'} · ${a.personType} · ${a.method}</div>
+      </div>
+      <div class="attendee-time ${a.clockOut?'clocked-out':''}">
+        IN ${formatTime(a.clockIn)}<br>
+        ${a.clockOut?'OUT '+formatTime(a.clockOut):'<span style="color:var(--vg-green)">Active</span>'}
+        ${a.hoursWorked?'<br><b>'+a.hoursWorked+'h</b>':''}
+      </div>
+      <button class="remove-btn" onclick="signOutOne(${a.id})">${a.clockOut?'✓':'⏱'}</button>
+    </div>`).join('');
+}
+function signOutOne(id){
+  const a=attendees.find(x=>x.id===id);if(!a)return;
+  if(a.clockOut){attendees=attendees.filter(x=>x.id!==id);showToast(a.name+' removed');}
+  else{
+    a.clockOut=new Date().toISOString();
+    let hrs=(new Date(a.clockOut)-new Date(a.clockIn))/3600000;
+    if(hrs<0)hrs+=24;
+    a.hoursWorked=Math.round(hrs*100)/100;
+    showToast(a.name+' signed out — '+a.hoursWorked+'h');
+  }
+  renderAttendees();
+}
+function signOutAll(){
+  const now=new Date().toISOString();
+  attendees.forEach(a=>{if(!a.clockOut){a.clockOut=now;let hrs=(new Date(a.clockOut)-new Date(a.clockIn))/3600000;if(hrs<0)hrs+=24;a.hoursWorked=Math.round(hrs*100)/100;}});
+  renderAttendees();showToast('All attendees signed out');
+}
+function goToExport(){
+  if(!attendees.length){showToast('No attendees to export',true);return;}
+  stopScanner();
+  document.getElementById('exp-project').textContent=meeting.project||'—';
+  document.getElementById('exp-date').textContent=formatDate(meeting.dt);
+  document.getElementById('exp-presenter').textContent=meeting.presenter||'—';
+  document.getElementById('exp-count').textContent=attendees.length;
+  document.getElementById('exp-type').textContent=meeting.type||'—';
+  document.getElementById('exp-shift').textContent=meeting.shift||'—';
+  navTo('export');
+}
+function exportMeetingCSV(){
+  const vantage=attendees.filter(a=>a.personType==='Employee').map(a=>a.name).join(', ');
+  const all=attendees.map(a=>a.name).join(', ');
+  const d=new Date(meeting.dt);
+  const title=(meeting.project||'Project')+'-'+(meeting.type||'Meeting')+'-'+d.toISOString().slice(0,10).replace(/-/g,'');
+  const headers=['Date | Time','Client','Project Name','Project #','Presenter','CITY | STATE','Meeting Details','Vantage Attendees','Attendees','Title','Item Type','Path','Meeting_ID','Meeting_Type','Shift','Status','Attendee_Count'];
+  const row=[d.toLocaleDateString('en-US')+' '+d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}),meeting.client||'',meeting.project||'',meeting.projectNum||'',meeting.presenter||'',meeting.location||'',meeting.details||'',vantage,all,title,'Item','sites/HSETestTeam/Lists/Safety Meetings',meeting.meetingID,meeting.type||'',meeting.shift||'','Closed',attendees.length];
+  downloadCSV('Safety_Meetings.csv',headers,[row]);showToast('Safety_Meetings.csv downloaded');
+}
+function exportAttendanceCSV(){
+  const headers=['Title','Meeting_ID','Meeting_Date','Meeting_Type','Shift','Person_ID','Person_Type','Full_Name','Company','Project','Clock_In','Clock_Out','Hours_Worked','Status','Admin_Adjusted'];
+  const d=new Date(meeting.dt);
+  const rows=attendees.map(a=>[(a.personID||a.name.replace(/\s+/g,'-'))+'-'+meeting.meetingID,meeting.meetingID,d.toLocaleDateString('en-US'),meeting.type||'',meeting.shift||'',a.personID||'',a.personType||'',a.name,a.company||'',meeting.project||'',formatDateTime(a.clockIn),a.clockOut?formatDateTime(a.clockOut):'',a.hoursWorked||'',a.hoursWorked?'Present':'Active','No']);
+  downloadCSV('Meeting_Attendance.csv',headers,rows);showToast('Meeting_Attendance.csv downloaded');
+}
+function downloadCSV(filename,headers,rows){
+  const esc=v=>{const s=String(v??'');return(s.includes(',')||s.includes('"')||s.includes('\n'))?'"'+s.replace(/"/g,'""')+'"':s;};
+  const blob=new Blob([[headers,...rows].map(r=>r.map(esc).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);
+}
+function newMeeting(){
+  attendees=[];meeting={};meetingID='';lastScanned='';
+  document.getElementById('attendee-count').textContent='0';renderAttendees();
+  const now=new Date();
+  document.getElementById('meeting-datetime').value=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,16);
+  ['meeting-client','meeting-project','meeting-project-num','meeting-presenter','meeting-location','meeting-details'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('meeting-type').value='';document.getElementById('meeting-shift').value='';
+  navTo('setup');
+}
+function formatDate(iso){return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+function formatTime(iso){return new Date(iso).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});}
+function formatDateTime(iso){const d=new Date(iso);return d.toLocaleDateString('en-US')+' '+d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});}
+function showToast(msg,isError=false){
+  const t=document.getElementById('toast');t.textContent=msg;
+  t.className='toast'+(isError?' error':'')+' show';
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+</script>
+<script>
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/service-worker.js').catch(()=>{});}
+</script>
+</body>
+</html>
